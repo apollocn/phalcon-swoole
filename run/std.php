@@ -12,6 +12,13 @@ use run\swoole\HttpServer;
 class std {
     public $swooleConfig  = [];
     public $phalconConfig = [];
+    public function __construct($swooleConfig,$phalconConfig)
+    {
+        $this->swooleConfig = $swooleConfig;
+        $this->phalconConfig = $phalconConfig;
+    }
+
+
     public function start(){
         HttpServer::app()->run($this->phalconConfig,$this->swooleConfig);
         return;

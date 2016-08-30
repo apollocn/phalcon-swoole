@@ -49,7 +49,7 @@ class HttpServer {
 		ob_start();
 		try {
 			echo $this->application->handle($request->server['request_uri'])->getContent();
-		} catch (Exception  $e) {
+		} catch (\Exception  $e) {
 			echo "Exception: {$e->getMessage()}\n";
 	//	    $logger = new \Phalcon\Logger\Adapter\File("test.log");
 	//	    $logger->log($e->getMessage());

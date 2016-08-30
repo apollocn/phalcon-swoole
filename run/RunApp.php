@@ -1,13 +1,16 @@
 <?php
 use \Phalcon\Config\Adapter\Ini;
 use run\std;
-class RunApp extends std {
+class RunApp {
     private $argv = ['start','stop','reload','restart','status'];
     private static $_instance;
+    private $std = [];
     public function __construct() {
-        $this->swooleConfig = $this->objToArr(new Ini(APP_PATH.'/config/swoole.ini'));
-        $this->phalconConfig = $this->objToArr(new Ini(APP_PATH.'/config/phalcon.ini'));
         spl_autoload_register($this->autoload());
+        $swooleConfig = $this->objToArr(new Ini(APP_PATH.'/config/swoole.ini'));
+        $phalconConfig = $this->objToArr(new Ini(APP_PATH.'/config/phalcon.ini'));
+        $this->std = new std($swooleConfig,$phalconConfig);
+
     }
     public static function app(){
         if(!(self::$_instance instanceof self)){
@@ -20,7 +23,7 @@ class RunApp extends std {
             if($val != @$_SERVER['argv'][1]){
                 continue;
             }
-            $this->$val();
+            $this->std->$val();
         }
 	    return ;
     }
@@ -39,7 +42,9 @@ class RunApp extends std {
             $file = str_replace('\\', '/', $class);
             $file = APP_PATH.DIRECTORY_SEPARATOR.$file.'.php';
             if(file_exists($file)){
-            require_once($file);
+                require_once($file);
+            }else{
+                echo $file;exit;
             }
         };
     }
