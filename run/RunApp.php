@@ -43,8 +43,6 @@ class RunApp {
             $file = APP_PATH.DIRECTORY_SEPARATOR.$file.'.php';
             if(file_exists($file)){
                 require_once($file);
-            }else{
-                echo $file;exit;
             }
         };
     }
