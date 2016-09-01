@@ -1,10 +1,9 @@
 <?php
 namespace run\phalcon\routers;
 use  \Phalcon\Mvc\Router\Group;
-class BlogRoutes extends Group{
+class blogRoutes extends Group{
     public function initialize()
     {
-        //Default paths
         $this->setPaths(array(
             'namespace' => 'Blog\\Controllers'
         ));
