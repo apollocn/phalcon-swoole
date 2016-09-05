@@ -11,7 +11,7 @@ class AppRouter{
         //404
         self::$router->notFound(
             array(
-                "controller" => "base",
+                "controller" => "handler",
                 "action"     => "notFound"
             )
         );
