@@ -7,7 +7,14 @@
  */
 use \Phalcon\Mvc\Controller;
 class HandlerController extends Controller{
+    protected $body;
+    protected $head;
+    protected $cookie;
     public function notFoundAction(){
-        echo "404error page";
+        echo "404 error page";
+    }
+    public function errorAction(){
+        $error = error_get_last();
+        var_dump($error);
     }
 }

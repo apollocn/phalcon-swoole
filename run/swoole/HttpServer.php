@@ -1,12 +1,14 @@
 <?php
 namespace run\swoole;
 use run\phalcon\Factory;
-class HttpServer {
+use run\request;
+use \Phalcon\Mvc\application;
+final class HttpServer {
     public static $_instance;
     private $http;
     private $phalconConfig;
     private $swooleConfig;
-    private $application;
+    private $di;
     public function run($phalconConfig,$swooleConfig){
 		$this->phalconConfig = $phalconConfig;
 		$this->swooleConfig = $swooleConfig;
@@ -24,7 +26,9 @@ class HttpServer {
 		$this->http->on('WorkerStart' , array($this , 'onWorkerStart'));
 
 		$this->http->on('request' , array($this , 'onRequest'));
+
 		$this->http->on('shutdown',array($this,'shutdown'));
+
 
 		$this->http->start();
     }
@@ -32,38 +36,38 @@ class HttpServer {
 
     }
     public function onStart(){
-		swoole_set_process_name("swoole_http_server_react");
+		//swoole_set_process_name("swoole_http_server_react");
     }
     
     public function onManagerStart(){
-		swoole_set_process_name("swoole_http_server_manager");
+		//swoole_set_process_name("swoole_http_server_manager");
     }
     
     public function onWorkerStart() {
-		swoole_set_process_name("swoole_http_server_worker");
-		$this->setApplication();
+		//swoole_set_process_name("swoole_http_server_worker");
+		$this->setDi();
     }
 
     //接受http请求
     public function  onRequest($request, $response){
-		ob_start();
-		try {
-			echo $this->application->handle($request->server['request_uri'])->getContent();
-		} catch (\Exception  $e) {
-			echo "Exception: {$e->getMessage()}\n";
-	//	    $logger = new \Phalcon\Logger\Adapter\File("test.log");
-	//	    $logger->log($e->getMessage());
-	//	    $logger->close();
-		}
-		$result = ob_get_contents();
-		ob_end_clean();
-		$response->end($result);
-
+        $this->di->set('swooleRequest',function()use($request){
+            return $request;
+        });
+        $this->di->set('swooleResponse',function()use($response){
+            return $response;
+        });
+        $application = new application($this->di);
+        register_shutdown_function([$this,'errorHandle'],$application,$response);
+		$app = $application->handle($request->server['request_uri']);
+        $response->header("Server","php");
+        $response->end($app->getContent());
 		$this->bindEvents($request);
         return ;
     }
-    private function setApplication(){
-		$this->application = Factory::app()->run($this->phalconConfig);
+    //加载phalcon配置文件
+    private function setDi(){
+		$this->di = Factory::app()->getDi($this->phalconConfig);
+		return $this->di;
     }
     //监听命令
     private function bindEvents($request){
@@ -82,7 +86,7 @@ class HttpServer {
 		if(@$request->server['server_port']==$this->swooleConfig['manager']['port'] && @$request->server['query_string']==$this->swooleConfig['manager']['reload']){
 			return true;
 		}
-	return false;
+		return false;
     }
     //监听重启命令
     private function isShutDown($request){
@@ -91,6 +95,10 @@ class HttpServer {
 		}
 		return false;
     }
+    //捕获错误
+    public function errorHandle($application,$response){
+		$response->end($application->handle('/error')->getContent());
+	}
     public static function app(){
 		if(!(self::$_instance instanceof self)){
 			self::$_instance = new self;
