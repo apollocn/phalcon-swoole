@@ -5,12 +5,16 @@ use \Phalcon\DI\FactoryDefault;
 use \Phalcon\Session\Adapter\Files;
 use \Phalcon\Mvc\View;
 use \Phalcon\Crypt;
+use Phalcon\Cache\Frontend\Data as FrontData;
+use Phalcon\Cache\Backend\Libmemcached as BackMemCached;
+
 class Factory {
     private static $_instance;
     private $router;
     private $session;
     private $view;
     private $crypt;
+    private $cache;
     private $di;
 
     public static function app(){
@@ -27,6 +31,7 @@ class Factory {
         $this->di->set('view', $this->setView());
         $this->di->set('router',$this->setRouter());
         $this->di->set('crypt', $this->setCrypt());
+        $this->di->set('cache', $this->setCache());
         return $this->di;
     }
     public function setCrypt(){
@@ -54,6 +59,25 @@ class Factory {
     private function setRouter(){
         $this->router = AppRouter::getRouters();
         return $this->router;
+    }
+    private function setCache(){
+        $frontCache = new FrontData(
+            array(
+                "lifetime" => 1800
+            )
+        );
+        $this->cache = new BackMemCached(
+            $frontCache,
+            array(
+                "servers" => array(
+                    array(
+                        "host"   => "127.0.0.1",
+                        "port"   => "11211",
+                    )
+                )
+            )
+        );
+        return $this->cache;
     }
 
 }

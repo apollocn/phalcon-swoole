@@ -1,11 +1,12 @@
 <?php
-use \Phalcon\Mvc\Controller;
-use Plugins as PL;
-class IndexController extends Controller{
+use \run\phalcon\BaseController;
+use plugins\testClass;
+class IndexController extends BaseController{
     public function indexAction(){
         echo "<h1>Hello World</h1>";
-        $test = new PL\test;
-        $test->test();
+        $test = new testClass;
+        $test->echoTest();
+        echo self::$request->header['user-agent'];
     }
 }
 

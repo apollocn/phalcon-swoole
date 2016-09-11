@@ -1,16 +1,16 @@
 <?php
 use \Phalcon\Config\Adapter\Ini;
-use run\std;
-class RunApp {
+use run\swoole\HttpServer;
+interface runInterFace {
+    public function start();
+}
+final class RunApp implements runInterFace{
     private $argv = ['start','stop','reload','restart','status'];
     private static $_instance;
-    private $std = [];
     public function __construct() {
         spl_autoload_register($this->autoload());
-        $swooleConfig = $this->objToArr(new Ini(APP_PATH.'/config/swoole.ini'));
-        $phalconConfig = $this->objToArr(new Ini(APP_PATH.'/config/phalcon.ini'));
-        $this->std = new std($swooleConfig,$phalconConfig);
-
+        HttpServer::$swooleConfig = $this->objToArr(new Ini(APP_PATH.'/config/swoole.ini'));
+        HttpServer::$phalconConfig = $this->objToArr(new Ini(APP_PATH.'/config/phalcon.ini'));
     }
     public static function app(){
         if(!(self::$_instance instanceof self)){
@@ -23,9 +23,13 @@ class RunApp {
             if($val != @$_SERVER['argv'][1]){
                 continue;
             }
-            $this->std->$val();
+            $this->$val();
         }
 	    return ;
+    }
+    public function start(){
+        HttpServer::app()->run();
+        return;
     }
 
     private function objToArr($obj){

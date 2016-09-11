@@ -5,8 +5,9 @@
  * Date: 16/9/1
  * Time: 下午9:53
  */
-use \Phalcon\Mvc\Controller;
-class ManagerController extends Controller{
+namespace Admin;
+use \run\phalcon\BaseController;
+class ManagerController extends BaseController{
     public function queryAction(){
         echo "this is manger controller , query method";
     }

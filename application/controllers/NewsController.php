@@ -1,6 +1,6 @@
 <?php
-use Phalcon\Mvc\Controller;
-class NewsController extends Controller{
+use \run\phalcon\BaseController;
+class NewsController extends BaseController{
     public function detailAction(){
     	$year = $this->dispatcher->getParam("year");
         echo $year;
