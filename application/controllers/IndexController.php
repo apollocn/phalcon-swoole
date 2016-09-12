@@ -6,7 +6,7 @@ class IndexController extends BaseController{
         echo "<h1>Hello World</h1>";
         $test = new testClass;
         $test->echoTest();
-        echo self::$request->header['user-agent'];
+        echo @self::$request->header['user-agent'];
     }
 }
 

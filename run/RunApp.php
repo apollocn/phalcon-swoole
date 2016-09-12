@@ -1,16 +1,19 @@
 <?php
 use \Phalcon\Config\Adapter\Ini;
-use run\swoole\HttpServer;
-interface runInterFace {
-    public function start();
-}
-final class RunApp implements runInterFace{
+use run\std;
+use run\cliManage;
+final class RunApp {
     private $argv = ['start','stop','reload','restart','status'];
+    private $requireMent = ['phalcon','swoole','Zend OPcache','memcached'];
     private static $_instance;
+    public static $swooleConfig;
+    public static $phalconConfig;
+    private $manage;
     public function __construct() {
         spl_autoload_register($this->autoload());
-        HttpServer::$swooleConfig = $this->objToArr(new Ini(APP_PATH.'/config/swoole.ini'));
-        HttpServer::$phalconConfig = $this->objToArr(new Ini(APP_PATH.'/config/phalcon.ini'));
+        $this->requireMents();
+        self::$swooleConfig = $this->objToArr(new Ini(APP_PATH.'/config/swoole.ini'));
+        self::$phalconConfig = $this->objToArr(new Ini(APP_PATH.'/config/phalcon.ini'));
     }
     public static function app(){
         if(!(self::$_instance instanceof self)){
@@ -23,15 +26,11 @@ final class RunApp implements runInterFace{
             if($val != @$_SERVER['argv'][1]){
                 continue;
             }
-            $this->$val();
+            $this->manage = new cliManage();
+            $this->manage->$val();
         }
 	    return ;
     }
-    public function start(){
-        HttpServer::app()->run();
-        return;
-    }
-
     private function objToArr($obj){
         $_arr = is_object($obj) ? get_object_vars($obj) :$obj;
         $arr =[];
@@ -49,5 +48,19 @@ final class RunApp implements runInterFace{
                 require_once($file);
             }
         };
+    }
+    private function requireMents(){
+        $ext = get_loaded_extensions();
+        $std = new std();
+        $need = [];
+        foreach ($this->requireMent as $val){
+            if(!in_array($val,$ext)){
+                $need[] = $val;
+            }
+        }
+        if(count($need)>0){
+            $std->needInstall($need);
+        }
+        return;
     }
 }

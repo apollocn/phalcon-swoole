@@ -3,83 +3,101 @@ namespace run\swoole;
 use run\phalcon\Factory;
 use \Phalcon\Mvc\application;
 use run\phalcon\BaseController;
-final class HttpServer {
+use run\std;
+use run\newInterface\httpInterface;
+final class HttpServer implements httpInterface{
     public static $_instance;
-    private $http;
-    private $master_pid;
-    public static $phalconConfig;
-    public static $swooleConfig;
+    public $http;
     private $app;
+    private $std;
     public function run(){
-		$this->http = new \swoole_http_server(self::$swooleConfig['run']['ip'], self::$swooleConfig['run']['port']);
+        $this->std = new std;
+		$this->http = new \swoole_http_server(\RunApp::$swooleConfig['run']['ip'], \RunApp::$swooleConfig['run']['port']);
 			//设置参数
 		$this->http->set(
-			self::$swooleConfig['httpServer']
+            \RunApp::$swooleConfig['httpServer']
 		);
-		$this->http->addlistener('127.0.0.1',self::$swooleConfig['manager']['port'],SWOOLE_SOCK_TCP);
-
+		$this->http->addlistener(\RunApp::$swooleConfig['manager']['ip'],\RunApp::$swooleConfig['manager']['port'],SWOOLE_SOCK_TCP);
 		$this->http->on("start",array($this,'onStart'));
-
 		$this->http->on("ManagerStart",array($this,'onManagerStart'));
-
 		$this->http->on('WorkerStart' , array($this , 'onWorkerStart'));
-
-		$this->http->on('request' , array($this , 'onRequest'));
-
-		$this->http->on('shutdown',array($this,'shutdown'));
-
-
+        if(\RunApp::$swooleConfig['run']['runModel']=='PROD'){
+            $this->http->on('request' , array($this , 'onRequestProd'));
+        }elseif(\RunApp::$swooleConfig['run']['runModel']=='DEV'){
+            $this->http->on('request' , array($this , 'onRequestDev'));
+        }else{
+            $this->http->on('request' ,function($request, $response){
+                $response->end('We are currently updating our website , thanks for your visiting!');
+            });
+        }
+		$this->http->on('shutdown',array($this,'onShutdown'));
 		$this->http->start();
     }
-    public function shutdown(){
+    public function onShutdown(){
 
     }
-    public function onStart(){
-		swoole_set_process_name("swoole_http_server_react");
+    public function onStart($serv){
+        //swoole_set_process_name("swoole_http_server_react");
+        $this->std->onStart($serv);
     }
     
-    public function onManagerStart(){
-		swoole_set_process_name("swoole_http_server_manager");
+    public function onManagerStart($serv){
+        //swoole_set_process_name("swoole_http_server_manager");
+        $this->std->onManagerStart($serv);
     }
-    
-    public function onWorkerStart($serv) {
-		swoole_set_process_name("swoole_http_server_worker");
+    public function onWorkerStart($serv,$workId) {
+		//swoole_set_process_name("swoole_http_server_worker");
 		opcache_reset();
-    	$this->master_pid = $serv->master_pid;
-		$this->app = new application(Factory::app()->getDi(self::$phalconConfig));
+		$this->app = new application(Factory::app()->getDi(\RunApp::$phalconConfig));
+        $this->std->onWorkerStart($serv,$workId);
     }
     //接受http请求
-    public function  onRequest($request, $response){
-		BaseController::$request = $request;
-		BaseController::$response = $response;
-		register_shutdown_function([$this,'errorHandle'],$this->app,$response);
-		$response->header("Server","phpFrameWork");
+    public function  onRequestProd($request, $response){
+        if($request->server['server_port']==\RunApp::$swooleConfig['manager']['port']){
+            $this->bindEvents($request,$response);
+
+            return;
+        }
+        BaseController::$request = $request;
+        BaseController::$response = $response;
+        register_shutdown_function([$this,'errorHandle'],$this->app,$response);
+        $response->header("Server","phpFrameWork");
         $response->end($this->app->handle($request->server['request_uri'])->getContent());
-		$this->bindEvents($request);
+        return ;
+    }
+    public function  onRequestDev($request, $response){
+        BaseController::$request = $request;
+        BaseController::$response = $response;
+        register_shutdown_function([$this,'errorHandle'],$this->app,$response);
+        $response->header("Server","phpFrameWork");
+        $response->end($this->app->handle($request->server['request_uri'])->getContent());
+        $this->http->reload();
         return ;
     }
     //监听命令
-    private function bindEvents($request){
+    private function bindEvents($request,$response){
 		if($this->isReload($request)){
-			$this->http->reload();
+            $this->http->reload();
+            $response->end();
+            return;
 		}
 		if($this->isShutDown($request)){
 			$this->http->shutdown();
+            $response->end();
+            return;
 		}
+        $response->end();
     }
     //监听重载命令
     private function isReload($request){
-		if(self::$swooleConfig['run']['runModel']=='DEV'){
-			return true;
-		}
-		if(@$request->server['server_port']==self::$swooleConfig['manager']['port'] && @$request->server['query_string']==self::$swooleConfig['manager']['reload']){
+		if(@$request->server['server_port']==\RunApp::$swooleConfig['manager']['port'] && @$request->server['query_string']==\RunApp::$swooleConfig['manager']['reload']){
 			return true;
 		}
 		return false;
     }
     //监听重启命令
     private function isShutDown($request){
-		if(@$request->server['server_port']==self::$swooleConfig['manager']['port'] && @$request->server['query_string']==self::$swooleConfig['manager']['shutdown']){
+		if(@$request->server['server_port']==\RunApp::$swooleConfig['manager']['port'] && @$request->server['query_string']==\RunApp::$swooleConfig['manager']['shutdown']){
 			return true;
 		}
 		return false;
