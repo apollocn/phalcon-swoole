@@ -21,15 +21,7 @@ final class HttpServer implements httpInterface{
 		$this->http->on("start",array($this,'onStart'));
 		$this->http->on("ManagerStart",array($this,'onManagerStart'));
 		$this->http->on('WorkerStart' , array($this , 'onWorkerStart'));
-        if(\RunApp::$swooleConfig['run']['runModel']=='PROD'){
-            $this->http->on('request' , array($this , 'onRequestProd'));
-        }elseif(\RunApp::$swooleConfig['run']['runModel']=='DEV'){
-            $this->http->on('request' , array($this , 'onRequestDev'));
-        }else{
-            $this->http->on('request' ,function($request, $response){
-                $response->end('We are currently updating our website , thanks for your visiting!');
-            });
-        }
+        $this->http->on('request' , array($this , 'onRequest'));
 		$this->http->on('shutdown',array($this,'onShutdown'));
 		$this->http->start();
     }
@@ -52,10 +44,9 @@ final class HttpServer implements httpInterface{
         $this->std->onWorkerStart($serv,$workId);
     }
     //接受http请求
-    public function  onRequestProd($request, $response){
+    public function  onRequest($request, $response){
         if($request->server['server_port']==\RunApp::$swooleConfig['manager']['port']){
             $this->bindEvents($request,$response);
-
             return;
         }
         BaseController::$request = $request;
@@ -63,33 +54,25 @@ final class HttpServer implements httpInterface{
         register_shutdown_function([$this,'errorHandle'],$this->app,$response);
         $response->header("Server","phpFrameWork");
         $response->end($this->app->handle($request->server['request_uri'])->getContent());
-        return ;
-    }
-    public function  onRequestDev($request, $response){
-        BaseController::$request = $request;
-        BaseController::$response = $response;
-        register_shutdown_function([$this,'errorHandle'],$this->app,$response);
-        $response->header("Server","phpFrameWork");
-        $response->end($this->app->handle($request->server['request_uri'])->getContent());
-        $this->http->reload();
+        if(\RunApp::$swooleConfig['run']['runModel']=='DEV'){
+            $this->bindEvents($request,$response);
+        }
         return ;
     }
     //监听命令
     private function bindEvents($request,$response){
 		if($this->isReload($request)){
             $this->http->reload();
-            $response->end();
-            return;
 		}
 		if($this->isShutDown($request)){
 			$this->http->shutdown();
-            $response->end();
-            return;
 		}
-        $response->end();
     }
     //监听重载命令
     private function isReload($request){
+        if(\RunApp::$swooleConfig['run']['runModel']=='DEV'){
+            return true;
+        }
 		if(@$request->server['server_port']==\RunApp::$swooleConfig['manager']['port'] && @$request->server['query_string']==\RunApp::$swooleConfig['manager']['reload']){
 			return true;
 		}

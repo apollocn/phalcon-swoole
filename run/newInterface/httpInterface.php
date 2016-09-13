@@ -10,6 +10,5 @@ interface httpInterface {
     public function onStart($serv);
     public function onManagerStart($serv);
     public function onWorkerStart($serv,$workId);
-    public function onRequestProd($request, $response);
-    public function onRequestDev($request, $response);
+    public function onRequest($request, $response);
 }

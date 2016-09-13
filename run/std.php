@@ -29,6 +29,9 @@ class std {
         $fh = fopen('php://stdout', 'w');
         fwrite($fh, $text);
         fclose($fh);
+        $fh = fopen(APP_PATH.'/test.log', "a");
+        fwrite($fh, $text);
+        fclose($fh);
         return ;
     }
     private function appendStr($str,$color){
@@ -38,21 +41,27 @@ class std {
         return $this->color[$color].$str.$this->clear;
     }
     public function onStart($serv){
-        $str = "master running on pid ";
+        $time = "[".date("Y-m-d H:i:s",time())."]  ";
+        $str = $this->appendStr($time,'darkGreen');
+        $str.= "master running on pid ";
         $str.= $this->appendStr("%d",'green');
         $args = [$serv->master_pid];
         $this->writeLine($str,$args);
         return ;
     }
     public function onManagerStart($serv){
-        $str = 'manager running on pid ';
+        $time = "[".date("Y-m-d H:i:s",time())."]  ";
+        $str = $this->appendStr($time,'darkGreen');
+        $str.= 'manager running on pid ';
         $str.= $this->appendStr("%d",'green');
         $args = [$serv->manager_pid];
         $this->writeLine($str,$args);
         return ;
     }
     public function onWorkerStart($serv,$workId){
-        $str = "worker running on pid ";
+        $time = "[".date("Y-m-d H:i:s",time())."]  ";
+        $str = $this->appendStr($time,'darkGreen');
+        $str.= "worker running on pid ";
         $str.= $this->appendStr("%d",'green');
         $str.= " by id ";
         $str.= $this->appendStr("%d ",'green');
