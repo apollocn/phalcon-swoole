@@ -21,12 +21,6 @@ class cliManage implements appInterface {
     public function reload(){
         $this->curl(\RunApp::$swooleConfig['manager']['reload']);
     }
-    public function restart(){
-
-    }
-    public function status(){
-
-    }
     public function curl($str){
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:".\RunApp::$swooleConfig['manager']['port']."/?".$str);

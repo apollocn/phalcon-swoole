@@ -5,6 +5,7 @@ use \Phalcon\DI\FactoryDefault;
 use \Phalcon\Session\Adapter\Files;
 use \Phalcon\Mvc\View;
 use \Phalcon\Crypt;
+use \Phalcon\Mvc\Url;
 use Phalcon\Cache\Frontend\Data as FrontData;
 use Phalcon\Cache\Backend\Libmemcached as BackMemCached;
 
@@ -16,6 +17,7 @@ class Factory {
     private $crypt;
     private $cache;
     private $di;
+    private $url;
 
     public static function app(){
         if(!(self::$_instance instanceof self)){
@@ -32,6 +34,7 @@ class Factory {
         $this->di->set('router',$this->setRouter());
         $this->di->set('crypt', $this->setCrypt());
         $this->di->set('cache', $this->setCache());
+        $this->di->set('url', $this->setUrl());
         return $this->di;
     }
     public function setCrypt(){
@@ -52,7 +55,7 @@ class Factory {
         $this->view = new View();
         $this->view->setViewsDir(APP_PATH.'/application/views/');
         $this->view->registerEngines(array(
-	        ".phtml" => 'Phalcon\Mvc\View\Engine\Volt'
+	        ".phtml" => 'Phalcon\Mvc\View\Engine\Php'
 	    ));
 	    return $this->view;
     }
@@ -79,6 +82,10 @@ class Factory {
         );
         return $this->cache;
     }
-
+    private function setUrl(){
+        $this->url = new Url();
+        $this->url->setBaseUri('/');
+        return $this->url;
+    }
 }
 ?>

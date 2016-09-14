@@ -3,10 +3,15 @@ use \run\phalcon\BaseController;
 use plugins\testClass;
 class IndexController extends BaseController{
     public function indexAction(){
-        echo "<h1>Hello World</h1>";
-        $test = new testClass;
+        $test = new testClass();
         $test->echoTest();
-        echo @self::$request->header['user-agent'];
+//        $this->dispatcher->forward(
+//            array(
+//                "controller" => "\blog\index",
+//                "action"     => "index"
+//            )
+//        );
+        $this->view->user =  @self::$request->header['user-agent'];
     }
 }
 

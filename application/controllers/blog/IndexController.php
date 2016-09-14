@@ -12,18 +12,10 @@ class IndexController extends BaseController {
 		echo "i am Blog controllers\n";
         echo $this->dispatcher->getParam('id')."\n";
         $name = array('hello'=>'world');
-        for ($i=0;$i<6;$i++){
-            $this->cache->save("test".$i,$name);
-            echo $this->cache->get("test".$i,$name)['hello']."\n";
-            if($this->ifRefresh()){
-                $this->cache->delete('test');
-            }
-            echo $this->cache->get("test".$i,$name)['hello']."\n";
-        }
-        for ($i=0;$i<5;$i++){
-            $name = array('tom','lil','asdnfo','asdmif');
-            $de = json_encode($name);
-            print_r( json_decode($de,true));
-        }
+
+        //$this->cache->save("test",$name);
+        //$str = $this->cache->get("test",$name)['hello']."\n";
+
+        $this->view->pick('blog/index/index');
 	}
 }

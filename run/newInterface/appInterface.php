@@ -10,6 +10,4 @@ interface appInterface {
     public function start();
     public function stop();
     public function reload();
-    public function restart();
-    public function status();
 }

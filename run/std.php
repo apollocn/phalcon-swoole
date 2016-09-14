@@ -29,10 +29,12 @@ class std {
         $fh = fopen('php://stdout', 'w');
         fwrite($fh, $text);
         fclose($fh);
-        $fh = fopen(APP_PATH.'/test.log', "a");
-        fwrite($fh, $text);
-        fclose($fh);
         return ;
+    }
+    private function writeLog($str){
+        $fh = fopen(APP_PATH.\RunApp::$swooleConfig['manager']['log'], "a");
+        fwrite($fh, $str);
+        fclose($fh);
     }
     private function appendStr($str,$color){
         if(!isset($this->color[$color])){
@@ -47,6 +49,7 @@ class std {
         $str.= $this->appendStr("%d",'green');
         $args = [$serv->master_pid];
         $this->writeLine($str,$args);
+        $this->writeLog($time."master running on pid ".$serv->master_pid."\n");
         return ;
     }
     public function onManagerStart($serv){
@@ -56,6 +59,7 @@ class std {
         $str.= $this->appendStr("%d",'green');
         $args = [$serv->manager_pid];
         $this->writeLine($str,$args);
+        $this->writeLog($time."manager running on pid ".$serv->manager_pid."\n");
         return ;
     }
     public function onWorkerStart($serv,$workId){
@@ -67,6 +71,7 @@ class std {
         $str.= $this->appendStr("%d ",'green');
         $args = [$serv->worker_pid,$workId];
         $this->writeLine($str,$args);
+        $this->writeLog($time."worker running on pid ".$serv->worker_pid." by id ".$workId."\n");
         return ;
     }
     public function needInstall($requires){
