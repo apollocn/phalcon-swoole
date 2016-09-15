@@ -14,6 +14,7 @@ final class RunApp {
         $this->requireMents();
         self::$swooleConfig = $this->objToArr(new Ini(APP_PATH.'/config/swoole.ini'));
         self::$phalconConfig = $this->objToArr(new Ini(APP_PATH.'/config/phalcon.ini'));
+        $this->manage = new cliManage();
     }
     public static function app(){
         if(!(self::$_instance instanceof self)){
@@ -22,11 +23,13 @@ final class RunApp {
 	    return self::$_instance;
     }
     public function run(){
+        if(!@$_SERVER['argv'][1]){
+            $this->manage->help();
+        }
         foreach($this->argv as $val){
             if($val != @$_SERVER['argv'][1]){
                 continue;
             }
-            $this->manage = new cliManage();
             $this->manage->$val();
         }
 	    return ;
@@ -55,6 +58,7 @@ final class RunApp {
         $need = [];
         foreach ($this->requireMent as $val){
             if(!in_array($val,$ext)){
+
                 $need[] = $val;
             }
         }

@@ -32,9 +32,11 @@ class std {
         return ;
     }
     private function writeLog($str){
-        $fh = fopen(APP_PATH.\RunApp::$swooleConfig['manager']['log'], "a");
-        fwrite($fh, $str);
-        fclose($fh);
+        if(\RunApp::$swooleConfig['run']['runModel']=='PROD'){
+            $fh = fopen(APP_PATH.\RunApp::$swooleConfig['manager']['log'], "a");
+            fwrite($fh, $str);
+            fclose($fh);
+        }
     }
     private function appendStr($str,$color){
         if(!isset($this->color[$color])){
@@ -82,5 +84,19 @@ class std {
         $str = implode("\n",$need);
         $this->writeLine($str,$requires);
         die();
+    }
+    public function help(){
+        $str = "app is a tool for managing phpFrameWork\n\n";
+        $str.= "Usage:\n";
+        $str.= "      app command [arguments]\n\n";
+        $str.= "The commands are:\n";
+        $str.= $this->appendStr("%s ",'green');
+        $str.= " the server to run application\n";
+        $str.= $this->appendStr("%s ",'green');
+        $str.= " your file has been changed\n";
+        $str.= $this->appendStr("%s ",'green');
+        $str.= " the server";
+        $args = ["      start","      reload","      stop"];
+        $this->writeLine($str,$args);
     }
 }
