@@ -8,3 +8,5 @@ export=PATH:your file path<br>
 source ~/.profile<br>
 app start &<br>
 open your brower && enter localhost:9501<br>
+#more command
+app
