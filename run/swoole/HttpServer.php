@@ -29,16 +29,16 @@ final class HttpServer implements httpInterface{
 
     }
     public function onStart($serv){
-        swoole_set_process_name("swoole_http_server_react");
+        //swoole_set_process_name("swoole_http_server_react");
         $this->std->onStart($serv);
     }
     
     public function onManagerStart($serv){
-        swoole_set_process_name("swoole_http_server_manager");
+        //swoole_set_process_name("swoole_http_server_manager");
         $this->std->onManagerStart($serv);
     }
     public function onWorkerStart($serv,$workId) {
-		swoole_set_process_name("swoole_http_server_worker");
+		//swoole_set_process_name("swoole_http_server_worker");
 		opcache_reset();
 		$this->app = new application(Factory::app()->getDi(\RunApp::$phalconConfig));
         $this->std->onWorkerStart($serv,$workId);
